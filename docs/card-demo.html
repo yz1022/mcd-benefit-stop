@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>麦麦权益止损官</title>
+<style>
+  html, body { margin: 0; }
+  body { box-sizing: border-box; width: 100%; min-height: 100vh; padding: 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: #f3eee6; color: #1d1a17;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif; }
+  .card { width: 100%; max-width: 440px; min-width: 0; box-sizing: border-box; background: #fff; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 18px 50px rgba(70, 32, 16, 0.12); }
+  .banner { background: #6f2d22; color: #fff; font-size: 13px; padding: 8px 18px; }
+  .top { background: #c42318; color: #fff; padding: 22px 22px 18px; }
+  .kicker { font-size: 14px; opacity: 0.92; }
+  .yuan { font-size: 58px; line-height: 1; font-weight: 720; margin: 8px 0 6px; letter-spacing: -1px; }
+  .store { font-size: 13px; opacity: 0.9; }
+  .rows { padding: 6px 22px 8px; }
+  .row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 13px 0;
+    border-bottom: 1px solid #f1e7dc; font-size: 15px; }
+  .row span { flex: 0 0 auto; }
+  .row b { flex: 1 1 auto; min-width: 0; font-weight: 650; text-align: right; overflow-wrap: anywhere; }
+  .note { padding: 12px 22px 20px; color: #6d645c; font-size: 12px; line-height: 1.55; }
+  @media (max-width: 520px) {
+    .row { flex-direction: column; gap: 4px; }
+    .row b { text-align: left; }
+  }
+</style>
+</head>
+<body>
+  <article class="card">
+    <div class="banner">样例数据，不是实时账户</div>
+    <header class="top">
+      <div class="kicker">未来 72 小时将作废</div>
+      <div class="yuan">¥54.20</div>
+      <div class="store">示例门店 · 2026-10-15 14:00:00</div>
+    </header>
+    <div class="rows"><div class="row"><span>今晚建议</span><b>板烧鸡腿堡套餐</b></div><div class="row"><span>实付</span><b>¥25.00</b></div><div class="row"><span>这一单挽回</span><b>¥23.00</b></div><div class="row"><span>更早但挽回更少</span><b>中可乐兑换券 · 12 小时 · ¥9.00</b></div><div class="row"><span>7 天内更晚作废</span><b>¥4.00</b></div><div class="row"><span>本月将过期积分</span><b>420 分 · 无到期日</b></div><div class="row"><span>券的覆盖</span><b>卡包 11 张 / 本店 9 张</b></div></div>
+    <p class="note">只统计已经核价、且能在本店使用的券。积分没有到期日，不折进这笔金额。未确认不下单。非麦当劳官方产品。</p>
+  </article>
+</body>
+</html>

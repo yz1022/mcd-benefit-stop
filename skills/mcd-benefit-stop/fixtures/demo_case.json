@@ -1,0 +1,105 @@
+{
+  "sample": true,
+  "now": "2026-10-15 14:00:00",
+  "store_name": "示例门店",
+  "store_coupons": [
+    {
+      "title": "板烧鸡腿堡套餐",
+      "couponId": "DEMO-BOARD",
+      "couponCode": "DEMO-CODE-BOARD",
+      "tradeDateTime": "2026-10-01 00:00:00-2026-10-17 06:00:00",
+      "products": [{"productCode": "P-BOARD", "productName": "板烧鸡腿堡套餐"}],
+      "calculatePrice": {"productOriginalPrice": 4800, "price": 2500, "discount": 2300}
+    },
+    {
+      "title": "麦旋风",
+      "couponId": "DEMO-SUNDAE",
+      "couponCode": "DEMO-CODE-SUNDAE",
+      "tradeDateTime": "2026-10-10 00:00:00-2026-10-16 08:00:00",
+      "products": [{"productCode": "P-SUNDAE", "productName": "麦旋风"}],
+      "calculatePrice": {"productOriginalPrice": 1600, "price": 990, "discount": 610}
+    },
+    {
+      "title": "中薯条",
+      "couponId": "DEMO-FRIES",
+      "couponCode": "DEMO-CODE-FRIES",
+      "tradeDateTime": "2026-10-10 00:00:00-2026-10-18 02:00:00",
+      "products": [{"productCode": "P-FRIES", "productName": "中薯条"}],
+      "calculatePrice": {"productOriginalPrice": 1300, "price": 500, "discount": 800}
+    },
+    {
+      "title": "猪柳蛋套餐",
+      "couponId": "DEMO-BREAKFAST",
+      "couponCode": "DEMO-CODE-BREAKFAST",
+      "tradeDateTime": "2026-10-10 00:00:00-2026-10-17 21:00:00",
+      "products": [{"productCode": "P-BREAKFAST", "productName": "猪柳蛋套餐"}],
+      "calculatePrice": {"productOriginalPrice": 1800, "price": 990, "discount": 810}
+    },
+    {
+      "title": "中可乐兑换券",
+      "couponId": "DEMO-COLA",
+      "couponCode": "DEMO-CODE-COLA",
+      "tradeDateTime": "2026-10-14 00:00:00-2026-10-16 02:00:00",
+      "products": [{"productCode": "P-COLA", "productName": "中可乐"}],
+      "calculatePrice": {"productOriginalPrice": 900, "price": 0, "discount": 900}
+    },
+    {
+      "title": "周日甜筒",
+      "couponId": "DEMO-WEEK",
+      "couponCode": "DEMO-CODE-WEEK",
+      "tradeDateTime": "2026-10-10 00:00:00-2026-10-21 14:00:00",
+      "products": [{"productCode": "P-CONE", "productName": "甜筒"}],
+      "calculatePrice": {"productOriginalPrice": 400, "price": 0, "discount": 400}
+    },
+    {
+      "title": "未核价甜品",
+      "couponId": "DEMO-NOPRICE",
+      "couponCode": "DEMO-CODE-NOPRICE",
+      "tradeDateTime": "2026-10-10 00:00:00-2026-10-16 20:00:00",
+      "products": [{"productCode": "P-UNKNOWN", "productName": "未核价甜品"}]
+    },
+    {
+      "title": "已过期小食",
+      "couponId": "DEMO-EXPIRED",
+      "couponCode": "DEMO-CODE-EXPIRED",
+      "tradeDateTime": "2026-10-01 00:00:00-2026-10-14 12:00:00",
+      "products": [{"productCode": "P-OLD", "productName": "已过期小食"}],
+      "calculatePrice": {"productOriginalPrice": 1000, "price": 100, "discount": 900}
+    },
+    {
+      "title": "有效期缺失券",
+      "couponId": "DEMO-NODATE",
+      "couponCode": "DEMO-CODE-NODATE",
+      "products": [{"productCode": "P-NODATE", "productName": "有效期缺失券"}],
+      "calculatePrice": {"productOriginalPrice": 2000, "price": 1000, "discount": 1000}
+    }
+  ],
+  "my_coupons": [
+    {"title": "板烧鸡腿堡套餐"},
+    {"title": "麦旋风"},
+    {"title": "中薯条"},
+    {"title": "猪柳蛋套餐"},
+    {"title": "中可乐兑换券"},
+    {"title": "周日甜筒"},
+    {"title": "未核价甜品"},
+    {"title": "已过期小食"},
+    {"title": "有效期缺失券"},
+    {"title": "外送满减券", "channel": "外送专用"},
+    {"title": "App 专享券", "channel": "App"}
+  ],
+  "account": {
+    "availablePoint": 1280,
+    "currentMouthExpirePoint": 420,
+    "nextMouthExpirePoint": 80
+  },
+  "mall_products": [
+    {
+      "spuId": "DEMO-MALL-1",
+      "name": "示例积分商品",
+      "point": 350,
+      "price": 1000,
+      "downTime": "2026-10-20 00:00:00",
+      "status": 2
+    }
+  ]
+}

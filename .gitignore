@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+skills/mcd-benefit-stop/fixtures/live/
+fixtures/live/
