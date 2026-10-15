@@ -43,7 +43,7 @@
 前置：在 [open.mcd.cn/mcp](https://open.mcd.cn/mcp) 用手机号登录并激活 Token。Token 只放在本机，不要提交进仓库。
 
 ```bash
-git clone https://github.com/yuanZ1/yuanZ1.git
+git clone https://github.com/yz1022/mcd-benefit-stop.git
 cd mcd-benefit-stop
 bash scripts/install_skill.sh
 ```
