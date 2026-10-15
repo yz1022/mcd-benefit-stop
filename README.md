@@ -198,7 +198,7 @@ python3 skills/mcd-benefit-stop/scripts/probe_mcp.py
 | MCP Server、Tool、调用流程、业务价值 | [`MCP_INTEGRATION.md`](MCP_INTEGRATION.md) |
 | 脱敏配置 | [`mcp-config.example.json`](mcp-config.example.json) |
 | 源代码 | [`skills/mcd-benefit-stop/scripts/stop_loss.py`](skills/mcd-benefit-stop/scripts/stop_loss.py) |
-| WorkBuddy 对话导出 | [`workbuddy.md`](workbuddy.md) |
+| WorkBuddy 开发对话上下文 | [`workbuddy.md`](workbuddy.md) |
 
 ## 许可
 
