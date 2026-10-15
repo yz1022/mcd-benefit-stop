@@ -6,7 +6,7 @@
 
 | 字段 | 来源 | 说明 |
 |---|---|---|
-| `now` | `now-time-info.datetime` | `YYYY-MM-DD HH:MM:SS`，按北京时间理解 |
+| `now` | `now-time-info` 的 `structuredContent.datetime` 或 `data.formatted` | 按北京时间理解，毫秒会被丢掉 |
 | `store_name` | `query-nearby-stores` | 只用于展示 |
 | `store_coupons[]` | `query-store-coupons` | 本店可用券 |
 | `store_coupons[].couponId` | 同上 | 没有编号的券不进入金额 |
@@ -15,11 +15,11 @@
 | `store_coupons[].calculatePrice.price` | `calculate-price` | 应付，单位分 |
 | `store_coupons[].calculatePrice.discount` | `calculate-price` | 优惠，单位分 |
 | `store_coupons[].calculatePrice.productOriginalPrice` | `calculate-price` | 原价，单位分 |
-| `my_coupons[]` | `query-my-coupons` | 只计张数 |
-| `account.currentMouthExpirePoint` | `query-my-account` | 本月将过期积分。也接受 `currentMonthExpirePoint` |
-| `account.nextMouthExpirePoint` | `query-my-account` | 下月将过期积分 |
-| `account.availablePoint` | `query-my-account` | 可用积分 |
-| `mall_products[]` | `mall-points-products` | 只计数和展示，不兑换，不折现 |
+| `my_coupons[]` | `query-my-coupons` 的 `data.coupons` | 只计张数。有 `totalCount` 时用总张数，不用当前页长度 |
+| `account.currentMouthExpirePoint` | `query-my-account` 的 `data` | 本月将过期积分，实测是字符串，也可以是小数。也接受 `currentMonthExpirePoint` |
+| `account.nextMouthExpirePoint` | `query-my-account` 的 `data` | 下月将过期积分。没有到期日，不折现 |
+| `account.availablePoint` | `query-my-account` 的 `data` | 可用积分 |
+| `mall_products[]` | `mall-points-products` 的 `data` 数组 | `point`、`price` 是字符串。`downTime` 是商品下架时间，不是积分到期日 |
 
 ## 不做什么
 

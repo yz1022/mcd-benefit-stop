@@ -42,7 +42,7 @@ description: 麦麦权益止损官。用户想知道麦当劳优惠、券或积�
 6. `mall-points-products`，只展示，不兑换
 7. 对 72 小时内、且有 `couponId` 的每张券单独调用 `calculate-price`
 
-`calculate-price` 的金额是分。`query-my-account` 里本月将过期积分的字段名是 `currentMouthExpirePoint`，下月是 `nextMouthExpirePoint`。
+`calculate-price` 的金额是分。工具结果读 `structuredContent`，不要把说明文字当 JSON。积分在 `data.currentMouthExpirePoint` 和 `data.nextMouthExpirePoint`，字段名里的 `Mouth` 是接口原文，值是字符串。卡包张数用 `data.totalCount`。商城商品在 `data` 数组里，`downTime` 是商品下架时间。
 
 不要调用 `auto-bind-coupons`、`mall-create-order`、`draw-lottery`、`party-order-create`、`delivery-create-address`。用户明确说「先把能领的券领了」时，先复述再调用 `auto-bind-coupons`，然后重新查本店券。
 
@@ -70,7 +70,7 @@ python3 scripts/selftest.py
 - 未来 72 小时将作废的已核价优惠
 - 今晚建议的那一单、实付、挽回
 - 如果有更早到期但挽回更少的券，单独说出来
-- 本月将过期积分。没有到期日时，明确说不计入上面的金额
+- 本月将过期积分，以及下月将过期积分。没有到期日时，明确说不计入上面的金额
 
 卡包张数和本店返回张数不一样时，要说出来。
 

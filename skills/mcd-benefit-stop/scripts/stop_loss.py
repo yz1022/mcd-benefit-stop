@@ -68,26 +68,107 @@ def hours_text(hours):
     return "%.1f" % hours
 
 
-def _unwrap(value):
-    if isinstance(value, dict) and isinstance(value.get("content"), list):
-        for block in value["content"]:
-            if isinstance(block, dict) and block.get("type") == "text":
-                try:
-                    return json.loads(block.get("text") or "")
-                except (TypeError, ValueError):
-                    return value
-    return value
+def _loads_json(text):
+    try:
+        return json.loads(text)
+    except (TypeError, ValueError):
+        return None
 
 
-def _as_list(value):
-    value = _unwrap(value)
-    if isinstance(value, list):
+def _extract_original(text):
+    marker = "Original Response"
+    index = text.find(marker)
+    if index < 0:
+        return None
+    start = text.find("{", index)
+    if start < 0:
+        return None
+    depth = 0
+    for cursor in range(start, len(text)):
+        char = text[cursor]
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return _loads_json(text[start:cursor + 1])
+    return None
+
+
+def extract_structured(value):
+    """读 MCP 的 structuredContent。文本不是 JSON 时，再取说明里的 Original Response。"""
+    if isinstance(value, str):
+        value = _loads_json(value)
+    if not isinstance(value, dict):
         return value
-    if isinstance(value, dict):
-        for key in ("coupons", "list", "data", "items", "records", "products"):
-            if isinstance(value.get(key), list):
-                return value[key]
+    if "body" in value and "status" in value:
+        body = value["body"]
+        if isinstance(body, str):
+            body = _loads_json(body)
+        if isinstance(body, dict):
+            value = body
+    result = value.get("result") if isinstance(value.get("result"), dict) else value
+    if isinstance(result.get("structuredContent"), dict):
+        return result["structuredContent"]
+    content = result.get("content")
+    if isinstance(content, list):
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+            text = block.get("text") or ""
+            parsed = _loads_json(text)
+            if isinstance(parsed, dict):
+                return parsed.get("structuredContent") or parsed
+            original = _extract_original(text)
+            if isinstance(original, dict):
+                return original
+    return result
+
+
+def _record(value):
+    structured = extract_structured(value)
+    if not isinstance(structured, dict):
+        return {}
+    data = structured.get("data")
+    if isinstance(data, dict):
+        merged = dict(data)
+        for key, item in structured.items():
+            if key not in merged:
+                merged[key] = item
+        return merged
+    return structured
+
+
+def _records(value):
+    structured = extract_structured(value)
+    if isinstance(structured, list):
+        return structured
+    if not isinstance(structured, dict):
+        return []
+    data = structured.get("data")
+    if isinstance(data, list):
+        return data
+    sources = []
+    if isinstance(data, dict):
+        sources.append(data)
+    sources.append(structured)
+    for source in sources:
+        for key in ("coupons", "list", "products", "items", "records"):
+            if isinstance(source.get(key), list):
+                return source[key]
     return []
+
+
+def _total_count(value, records):
+    structured = extract_structured(value)
+    data = structured.get("data") if isinstance(structured, dict) else None
+    source = data if isinstance(data, dict) else structured
+    total = source.get("totalCount") if isinstance(source, dict) else None
+    if isinstance(total, str) and total.isdigit():
+        total = int(total)
+    if isinstance(total, int) and not isinstance(total, bool):
+        return total
+    return len(records)
 
 
 def _first(mapping, keys):
@@ -159,9 +240,9 @@ def normalize_coupon(raw, now):
 def ingest(payloads):
     """把若干 MCP 工具结果收成 build_report 能读的 case。"""
     payloads = payloads or {}
-    now_payload = _unwrap(payloads.get("now-time-info")) or {}
-    now = payloads.get("now") or _first(now_payload, ("datetime", "time", "now"))
-    store_raw = _as_list(payloads.get("query-store-coupons") or payloads.get("store_coupons"))
+    now_payload = _record(payloads.get("now-time-info") or {})
+    now = payloads.get("now") or _first(now_payload, ("formatted", "datetime", "time", "now"))
+    store_raw = _records(payloads.get("query-store-coupons") or payloads.get("store_coupons"))
     quotes = payloads.get("quotes") if isinstance(payloads.get("quotes"), dict) else {}
     store_coupons = []
     for raw in store_raw:
@@ -172,19 +253,40 @@ def ingest(payloads):
         if "calculatePrice" not in item and coupon_id in quotes:
             item["calculatePrice"] = quotes[coupon_id]
         store_coupons.append(item)
-    account = _unwrap(payloads.get("query-my-account") or payloads.get("account") or {})
-    if not isinstance(account, dict):
-        account = {}
-    mall = _as_list(payloads.get("mall-points-products") or payloads.get("mall_products"))
+    account_value = payloads.get("query-my-account") or payloads.get("account") or {}
+    account = _record(account_value)
+    coupon_value = payloads.get("query-my-coupons")
+    if coupon_value is None:
+        coupon_value = payloads.get("my_coupons")
+    my_coupons = _records(coupon_value)
+    mall = _records(payloads.get("mall-points-products") or payloads.get("mall_products"))
     return {
         "sample": bool(payloads.get("sample", False)),
         "now": now,
         "store_name": payloads.get("store_name") or "",
         "store_coupons": store_coupons,
-        "my_coupons": _as_list(payloads.get("query-my-coupons") or payloads.get("my_coupons")),
+        "my_coupons": my_coupons,
+        "wallet_total": _total_count(coupon_value, my_coupons),
         "account": account,
         "mall_products": mall,
     }
+
+
+def _dedupe(coupons):
+    chosen = {}
+    order = []
+    for coupon in coupons:
+        key = coupon["coupon_id"] or ("noid", coupon["title"], coupon.get("hours"))
+        previous = chosen.get(key)
+        if previous is None:
+            chosen[key] = coupon
+            order.append(key)
+            continue
+        previous_score = (1 if previous["priced"] else 0, previous["discount_fen"] or 0)
+        score = (1 if coupon["priced"] else 0, coupon["discount_fen"] or 0)
+        if score > previous_score:
+            chosen[key] = coupon
+    return [chosen[key] for key in order]
 
 
 def _point_number(account, keys):
@@ -209,13 +311,20 @@ def build_report(case, avoid=None):
     if now is None:
         raise ValueError("case.now 缺失或无法解析")
     avoid = [str(word) for word in (avoid or []) if str(word).strip()]
-    coupons = []
+    normalized = []
     for raw in case.get("store_coupons") or []:
         if isinstance(raw, dict):
-            coupons.append(normalize_coupon(raw, now))
+            normalized.append(normalize_coupon(raw, now))
+    coupons = _dedupe(normalized)
 
-    headline = [c for c in coupons if c["bucket"] == "h72" and c["priced"] and c["coupon_id"]]
-    later = [c for c in coupons if c["bucket"] == "d7" and c["priced"] and c["coupon_id"]]
+    headline = [
+        c for c in coupons
+        if c["bucket"] == "h72" and c["priced"] and c["coupon_id"] and c["discount_fen"] > 0
+    ]
+    later = [
+        c for c in coupons
+        if c["bucket"] == "d7" and c["priced"] and c["coupon_id"] and c["discount_fen"] > 0
+    ]
     eligible = list(headline)
     if avoid:
         eligible = [
@@ -268,7 +377,11 @@ def build_report(case, avoid=None):
         "unknown_expiry_count": sum(1 for c in coupons if c["bucket"] == "unknown"),
         "expired_count": sum(1 for c in coupons if c["bucket"] == "expired"),
         "inconsistent_count": sum(1 for c in coupons if c["inconsistent"]),
-        "wallet_count": len(case.get("my_coupons") or []),
+        "wallet_count": case["wallet_total"] if isinstance(case.get("wallet_total"), int) else len(case.get("my_coupons") or []),
+        "zero_savings_count": sum(
+            1 for c in coupons
+            if c["bucket"] == "h72" and c["priced"] and c["coupon_id"] and c["discount_fen"] == 0
+        ),
         "store_count": len(case.get("store_coupons") or []),
         "points": {
             "available": _point_number(account, ("availablePoint", "availablePoints", "available")),
@@ -315,7 +428,11 @@ def render_text(report):
     else:
         point_line = "%s（接口没有到期日，不计入上面的金额）" % points["this_month"]
     lines.append("本月将过期积分        " + point_line)
+    if _has_points(points["next_month"]):
+        lines.append("下月将过期积分        %s（同样不计入上面的金额）" % points["next_month"])
     lines.append("卡包 %s 张，本店返回 %s 张" % (report["wallet_count"], report["store_count"]))
+    if report.get("zero_savings_count"):
+        lines.append("核价后没有优惠        %s 张，不计入金额" % report["zero_savings_count"])
     if report["unpriced_count"]:
         lines.append("未核价                %s 张，不计入金额" % report["unpriced_count"])
     if report["unknown_expiry_count"]:
@@ -324,6 +441,13 @@ def render_text(report):
         lines.append("已经过期              %s 张，不参与推荐" % report["expired_count"])
     lines.append("未确认不下单。价格来自 calculate-price。")
     return "\n".join(lines)
+
+
+def _has_points(value):
+    try:
+        return float(value) != 0
+    except (TypeError, ValueError):
+        return False
 
 
 def _esc(text):
@@ -364,7 +488,11 @@ def render_html(report):
     else:
         point_value = "%s 分 · 无到期日" % points["this_month"]
     add("本月将过期积分", point_value)
+    if _has_points(points["next_month"]):
+        add("下月将过期积分", "%s 分" % points["next_month"])
     add("券的覆盖", "卡包 %s 张 / 本店 %s 张" % (report["wallet_count"], report["store_count"]))
+    if report.get("zero_savings_count"):
+        add("核价后没有优惠", "%s 张" % report["zero_savings_count"])
     banner = ""
     if report["sample"]:
         banner = "<div class=\"banner\">样例数据，不是实时账户</div>"

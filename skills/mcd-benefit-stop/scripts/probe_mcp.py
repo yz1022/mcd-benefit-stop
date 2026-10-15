@@ -35,6 +35,23 @@ def redact(value):
     return value
 
 
+def parse_body(body):
+    try:
+        return json.loads(body)
+    except (TypeError, ValueError):
+        return None
+
+
+def structured_of(body):
+    parsed = parse_body(body)
+    if not isinstance(parsed, dict):
+        return None
+    result = parsed.get("result")
+    if isinstance(result, dict) and isinstance(result.get("structuredContent"), dict):
+        return result["structuredContent"]
+    return None
+
+
 def post(payload, session_id):
     data = json.dumps(payload).encode("utf-8")
     headers = {
@@ -70,7 +87,7 @@ def main():
         None,
     )
     (OUT / "initialize.json").write_text(
-        json.dumps({"status": status, "body": redact(body[:4000])}, ensure_ascii=False, indent=2),
+        json.dumps({"status": status, "structuredContent": redact(structured_of(body))}, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
     if session_id:
@@ -82,7 +99,7 @@ def main():
                 {"jsonrpc": "2.0", "id": index, "method": "tools/call", "params": {"name": name, "arguments": arguments}},
                 session_id,
             )
-            payload = {"status": status, "body": body[:20000]}
+            payload = {"status": status, "structuredContent": redact(structured_of(body))}
         except Exception as exc:
             payload = {"error": exc.__class__.__name__}
         (OUT / (name + ".json")).write_text(

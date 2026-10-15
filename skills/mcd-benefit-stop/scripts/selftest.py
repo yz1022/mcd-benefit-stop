@@ -186,6 +186,89 @@ def main():
         and raw_report["suggestion"]["coupon_id"] == "RAW-1",
     )
     check("两张券不会叠进同一单", len(raw_report["suggestion"]["coupon_ids"]) == 1)
+    check("样例会单列下月积分", "下月将过期积分        80" in text)
+
+    live = ingest({
+        "now-time-info": {
+            "result": {
+                "structuredContent": {"datetime": "2026-10-15T15:26:40.552", "data": {"formatted": "2026-10-15 15:26:40"}}
+            }
+        },
+        "query-my-account": {
+            "result": {
+                "content": [{
+                    "type": "text",
+                    "text": "# API\n\n## Original Response\n\n"
+                    + json.dumps({
+                        "datetime": "2026-10-15 15:26:40",
+                        "data": {
+                            "availablePoint": "1280",
+                            "currentMouthExpirePoint": "12.5",
+                            "nextMouthExpirePoint": "80.5",
+                            "accumulativePoint": "181.8",
+                        },
+                    }),
+                }]
+            }
+        },
+        "query-my-coupons": {
+            "result": {
+                "structuredContent": {"data": {"coupons": [{"title": "只返回了一页"}], "totalCount": 14}},
+                "content": [{"type": "text", "text": "# 您的优惠券列表"}],
+            }
+        },
+        "query-store-coupons": {
+            "coupons": [
+                {
+                    "title": "重复券",
+                    "couponId": "DUP",
+                    "valid_to": "2026-10-16 15:26:40",
+                    "products": [{"productCode": "D", "productName": "重复券"}],
+                    "calculatePrice": {"productOriginalPrice": 1000, "price": 1000, "discount": 0},
+                },
+                {
+                    "title": "重复券",
+                    "couponId": "DUP",
+                    "valid_to": "2026-10-16 15:26:40",
+                    "products": [{"productCode": "D", "productName": "重复券"}],
+                    "calculatePrice": {"productOriginalPrice": 2000, "price": 500, "discount": 1500},
+                },
+            ]
+        },
+        "mall-points-products": {
+            "result": {
+                "structuredContent": {
+                    "data": [{
+                        "spuName": "示例商品",
+                        "point": "350",
+                        "price": "45",
+                        "status": 2,
+                        "downTime": "2026-12-30 23:59:59",
+                    }]
+                }
+            }
+        },
+    })
+    live_report = build_report(live)
+    check("带毫秒的服务器时间能解析", live_report["now"] == "2026-10-15 15:26:40")
+    check("字符串积分不进头条", live_report["points"]["this_month"] == 12.5 and live_report["headline_fen"] == 1500)
+    check("下月积分保留小数", live_report["points"]["next_month"] == 80.5)
+    check("卡包用 totalCount，不拿当前页张数", live_report["wallet_count"] == 14 and live_report["store_count"] == 2)
+    check("同一张券只保留核价更高的一次", live_report["suggestion"]["coupon_id"] == "DUP" and live_report["suggestion"]["recovered_fen"] == 1500)
+    check("商城下架时间不会变成积分到期日", live_report["points"]["expire_date"] is None and live_report["points"]["mall_count"] == 1)
+
+    zero = build_report({
+        "now": "2026-10-15 14:00:00",
+        "store_coupons": [{
+            "title": "没有优惠",
+            "couponId": "ZERO",
+            "valid_to": "2026-10-16 14:00:00",
+            "products": [{"productCode": "Z", "productName": "没有优惠"}],
+            "calculatePrice": {"productOriginalPrice": 1000, "price": 1000, "discount": 0},
+        }],
+        "account": {},
+    })
+    check("优惠为 0 的券不进入头条", zero["headline_fen"] == 0 and zero["suggestion"] is None and zero["zero_savings_count"] == 1)
 
     print("")
     print("%s passed, %s failed" % (len(PASSED), len(FAILED)))

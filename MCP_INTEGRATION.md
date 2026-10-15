@@ -26,7 +26,7 @@ Token 在 [open.mcd.cn/mcp](https://open.mcd.cn/mcp) 用手机号激活。本仓
 | `calculate-price` | 单券核价，金额单位是分 | `productOriginalPrice` / `price` / `discount` | 否 |
 | `create-order` | 用户明确确认后才创建订单 | 支付链接 | 是，默认不调用 |
 
-`query-my-account` 的字段名里 `Mouth` 是接口实际拼写，归一化时同时接受 `Month`。
+`query-my-account` 的字段名里 `Mouth` 是接口实际拼写，归一化时同时接受 `Month`。只读探测确认过这些值在 `structuredContent.data` 里，积分是字符串。`query-my-coupons` 的券列表在 `data.coupons`，总张数是 `data.totalCount`。`mall-points-products` 的 `data` 是数组，`point` 和 `price` 也是字符串。说明文字本身不是 JSON，金额和张数以 `structuredContent` 为准。
 
 未默认调用的写操作：`auto-bind-coupons`、`mall-create-order`、`cancel-order`、`draw-lottery`、`party-order-create`、`delivery-create-address`。用户亲口要求领券时，才可以调用 `auto-bind-coupons`，并在调用前复述。
 
