@@ -13,8 +13,8 @@
 ```text
 【参赛申请】
 项目名称：麦麦权益止损官
-项目地址：https://github.com/YOUR_NAME/mcd-benefit-stop
+项目地址：https://github.com/yuanZ1/yuanZ1
 项目简介：扫描本店 72 小时内将作废的已核价优惠，给出今晚挽回最多的一单，积分没有到期日时不折成现金。
 ```
 
-把 `YOUR_NAME` 换成仓库所有者。官方账号在 Issue 下回复成功后，才算报名完成。
+官方账号在 Issue 下回复成功后，才算报名完成。
